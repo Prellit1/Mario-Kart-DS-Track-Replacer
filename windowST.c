@@ -3,7 +3,7 @@
 OPENFILENAME openerM, openerC, openerNCLR, openerNCGR, openerNSCR;
 FILE *MkdsF, *CarcF, *ncgr, *nclr, *nscr;
 HWND hWnd;
-HWND hwndCBS;
+HWND hwndCBS, langCBS;
 int isTex;
 char TrckNames[TRACKS][50] = {
 
@@ -328,5 +328,17 @@ int LocGlobRepl(int BX, int BY, int TX, int TY, int isLocal)
         return 1;
     }
 
+    return 0;
+}
+int nameReplacing(char *Thingy, unsigned int length)
+{
+    if (MkdsF)
+    {
+        int trackId = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+        int langID = SendMessage(langCBS, CB_GETCURSEL, 0, 0);
+        MKDSReplTrack(MkdsF, langID, trackId, length, Thingy);
+
+        return 1;
+    }
     return 0;
 }

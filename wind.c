@@ -53,6 +53,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 165, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
     HWND hwndButtonTrack = CreateWindowW(L"BUTTON", L"Replace", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 215, 100, 30, hWnd, (HMENU)FILE_REP, NULL, NULL);
     hwndCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 50, 60, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
+    langCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 325, 60, 120, 240, hWnd, NULL, hInst, NULL);
 
     //
 
@@ -86,6 +87,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
         SendMessage(hwndCBS, CB_ADDSTRING, 0, TrckNames[i]);
     }
     SendMessage(hwndCBS, CB_SETCURSEL, 0, 0);
+    SendMessage(langCBS, CB_ADDSTRING, 0, "English");
+    SendMessage(langCBS, CB_ADDSTRING, 0, "Italiano");
+    SendMessage(langCBS, CB_ADDSTRING, 0, "Deutsch");
+    SendMessage(langCBS, CB_ADDSTRING, 0, "Français");
+    SendMessage(langCBS, CB_ADDSTRING, 0, "Español");
+    SendMessage(langCBS, CB_SETCURSEL, 0, 0);
 
     MSG msg = {0};
 

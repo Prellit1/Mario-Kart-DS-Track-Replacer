@@ -1,4 +1,6 @@
 #include "../common.h"
+#include "../carcPut.h"
+#pragma once
 typedef struct
 {
     unsigned int addrStart;
@@ -18,3 +20,5 @@ static inline unsigned short getNumBmg(char *bmg)
 {
     return *(unsigned short *)&bmg[0x20 + 0x8];
 }
+
+void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, char *charl);
