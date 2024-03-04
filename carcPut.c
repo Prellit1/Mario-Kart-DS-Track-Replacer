@@ -114,12 +114,11 @@ void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
 {
     unsigned int temp[2];
     unsigned int offset;
-
+    offset = newSize - entry.size;
     if (entry.id == 0xFF) // == fakeFat -> == arm9
     {
         unsigned int lengt = newSize;
 
-        offset = newSize - entry.size;
         fseek(file, 0x2c, SEEK_SET);
         fwrite(&lengt, sizeof(int), 1, file);
 

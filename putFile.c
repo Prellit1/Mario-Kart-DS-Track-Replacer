@@ -1,4 +1,5 @@
 #include "putFile.h"
+#include "ARM9/ARM9.h"
 #define TEX 1
 #define NOT_TEX 0
 
@@ -114,6 +115,22 @@ void _fileSizeChange(FILE *Mkds, unsigned int sizeAdded)
     sizing2 = sizing2 + sizeAdded;
     fseek(Mkds, 0x80, SEEK_SET);
     fwrite(&sizing2, 4, 1, Mkds);
+}
+void editGlobalLocalCoord(int isLocal, unsigned short BX, unsigned short BY, unsigned short TX, unsigned short TY, FILE *mkds, int id)
+{
+    int addr = getArm9Addr(mkds);
+    int temp;
+    fseek(mkds, addr, SEEK_SET);
+    fread(&temp, sizeof(int), 1, mkds);
+    fseek(mkds, addr, SEEK_SET);
+    if (!isLocal)
+        fseek(mkds, 0x1685A4 + (id * 2 * 4), SEEK_CUR);
+    else
+        fseek(mkds, 0x16875C + (id * 2 * 4), SEEK_CUR);
+    fwrite(&TX, sizeof(short), 1, mkds);
+    fwrite(&TY, sizeof(short), 1, mkds);
+    fwrite(&BX, sizeof(short), 1, mkds);
+    fwrite(&BY, sizeof(short), 1, mkds);
 }
 
 //-----------------------------------

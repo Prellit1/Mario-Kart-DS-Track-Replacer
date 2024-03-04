@@ -143,7 +143,7 @@ int NCReplacing(int curs)
     if (curs > 0)
         curs--;
 
-    if (openerNSCR.lpstrFile[0] != '\0' && openerNCLR.lpstrFile[0] != '\0' && openerNCGR.lpstrFile[0] != '\0' && openerM.lpstrFile[0] != '\0')
+    if (nscr && nclr && ncgr && MkdsF)
     {
         getFat(MkdsF);
         ENTRY_FAT Ncgr = getCourse(153 + curs * 3);
@@ -315,4 +315,18 @@ int checkDecomp(FILE *Mkds)
     if (!a)
         return 0;
     return 1;
+}
+
+int LocGlobRepl(int BX, int BY, int TX, int TY, int isLocal)
+{
+    if (MkdsF)
+    {
+
+        int ID = TrckId[SendMessage(hwndCBS, CB_GETCURSEL, 0, 0)];
+        ID = getGameCourseID(ID) + 1;
+        editGlobalLocalCoord(isLocal, (unsigned short)BX, (unsigned short)BY, (unsigned short)TX, (unsigned short)TY, MkdsF, ID);
+        return 1;
+    }
+
+    return 0;
 }

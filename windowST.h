@@ -24,5 +24,6 @@ int NCReplacing(int curs);
 void decompArm9ToRom(FILE *Mkds, HWND Hwnd);
 int checkDecomp(FILE *Mkds);
 extern char TrckNames[TRACKS][50];
+int LocGlobRepl(int BX, int BY, int TX, int TY, int isLocal);
 
 extern char TrckId[TRACKS];
