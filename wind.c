@@ -18,6 +18,8 @@ char isLocal;
 #define FILE_REP 0x8
 #define NC_REP 0x100
 
+#define OFFSET 100 // Kinda hacky or smth but hey it modifies faster the x pos of the map stufff
+
 LRESULT CALLBACK WindProce(HWND, UINT, WPARAM, LPARAM);
 BOOL EnforceSignedIntegerEdit(HWND);
 
@@ -63,21 +65,21 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 
     texTextN3 = CreateWindowW(L"STATIC", L"NSCR", WS_VISIBLE | WS_CHILD, 175, 380, 1200, 30, hWnd, NULL, NULL, NULL);
     HWND hwndButtonNC = CreateWindowW(L"BUTTON", L"Change", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 420, 100, 30, hWnd, (HMENU)NC_REP, NULL, NULL);
-    hTX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80, 520, 100, 26, hWnd, 0, NULL, NULL);
-    hBX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80, 570, 100, 26, hWnd, 0, NULL, NULL);
-    hTY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230, 520, 100, 26, hWnd, 0, NULL, NULL);
-    hBY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230, 570, 100, 26, hWnd, 0, NULL, NULL);
+    hTX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80 + OFFSET, 520, 100, 26, hWnd, 0, NULL, NULL);
+    hBX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80 + OFFSET, 570, 100, 26, hWnd, 0, NULL, NULL);
+    hTY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230 + OFFSET, 520, 100, 26, hWnd, 0, NULL, NULL);
+    hBY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230 + OFFSET, 570, 100, 26, hWnd, 0, NULL, NULL);
     EnforceSignedIntegerEdit(hTX);
     EnforceSignedIntegerEdit(hTY);
     EnforceSignedIntegerEdit(hBX);
     EnforceSignedIntegerEdit(hBY);
-    CreateWindowW(L"STATIC", L"Top Left :", WS_VISIBLE | WS_CHILD, 10, 525, 60, 30, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"Bottom Right :", WS_VISIBLE | WS_CHILD, 10, 575, 60, 30, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"X :", WS_VISIBLE | WS_CHILD, 80, 494, 100, 26, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"Y :", WS_VISIBLE | WS_CHILD, 230, 494, 100, 26, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"BUTTON", L"Local Map ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, 360, 520, 120, 30, hWnd, (HMENU)MAP_PUSH, NULL, NULL);
-    CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 360, 566, 100, 30, hWnd, (HMENU)MAP_REP, NULL, NULL);
-    mapText = CreateWindowW(L"STATIC", L"Global Map", WS_VISIBLE | WS_CHILD, 480, 526, 1200, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Top Left :", WS_VISIBLE | WS_CHILD, 50, 525, 100, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Bottom Right :", WS_VISIBLE | WS_CHILD, 50, 575, 100, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"X :", WS_VISIBLE | WS_CHILD, 80 + OFFSET, 494, 100, 26, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Y :", WS_VISIBLE | WS_CHILD, 230 + OFFSET, 494, 100, 26, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Local Map ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, 360 + OFFSET, 520, 120, 30, hWnd, (HMENU)MAP_PUSH, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 360 + OFFSET, 566, 100, 30, hWnd, (HMENU)MAP_REP, NULL, NULL);
+    mapText = CreateWindowW(L"STATIC", L"Global Map", WS_VISIBLE | WS_CHILD, 480 + OFFSET, 526, 1200, 30, hWnd, NULL, NULL, NULL);
 
     for (int i = 0; i < TRACKS; i++)
     {
@@ -265,6 +267,24 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             int temp2 = preCheck(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
 
+            if (!MkdsF)
+            {
+                MessageBox(hWnd, "Error, Please import an (EU) Mario Kart DS Rom", "Error", MB_ICONERROR);
+                goto brk;
+            }
+            if (!checkDecomp(MkdsF))
+            {
+                int ans = MessageBox(hWnd, "Please decompress your ROM's ARM9 to proceed.", "Hey !", MB_ICONQUESTION | MB_YESNO | MB_APPLMODAL);
+                if (ans == IDYES)
+                {
+
+                    decompArm9ToRom(MkdsF, hWnd);
+                    MessageBox(hWnd, "Successfully decompressed (normally)!", "Success", MB_ICONINFORMATION);
+                }
+                else
+                    goto brk;
+            }
+
             if (!temp2)
             {
                 MessageBox(hWnd, "Error, coordinates must be between -32 768 and 32 767.", "Error", MB_ICONERROR);
@@ -295,7 +315,7 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             else
             {
                 SetWindowTextA(texTextM, openerM.lpstrFile);
-                if (checkDecomp(MkdsF))
+                if (!checkDecomp(MkdsF))
                 {
                     int ans = MessageBox(hWnd, "Would you like to decompress the arm9 in the rom ?\nIt will help the program for bottom screen maps.", "Hey !", MB_ICONQUESTION | MB_YESNO | MB_APPLMODAL);
                     if (ans == IDYES)

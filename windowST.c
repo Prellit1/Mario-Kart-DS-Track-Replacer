@@ -313,8 +313,8 @@ int checkDecomp(FILE *Mkds)
     fread(&a, sizeof(int), 1, Mkds);
 
     if (!a)
-        return 0;
-    return 1;
+        return 1;
+    return 0;
 }
 
 int LocGlobRepl(int BX, int BY, int TX, int TY, int isLocal)
