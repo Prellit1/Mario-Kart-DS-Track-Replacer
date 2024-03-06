@@ -130,7 +130,8 @@ int trackReplacing()
     }
     return 0;
 }
-int NCReplacing(int curs)
+
+int modifCurs(int curs)
 {
     if (curs > 23)
         curs--;
@@ -142,7 +143,11 @@ int NCReplacing(int curs)
         curs--;
     if (curs > 0)
         curs--;
-
+    return curs;
+}
+int NCReplacing(int curs)
+{
+    curs = modifCurs(curs);
     if (nscr && nclr && ncgr && MkdsF)
     {
         getFat(MkdsF);
@@ -335,6 +340,7 @@ int nameReplacing(char *Thingy, unsigned int length)
     if (MkdsF)
     {
         int trackId = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+        trackId = modifCurs(trackId);
         int langID = SendMessage(langCBS, CB_GETCURSEL, 0, 0);
         MKDSReplTrack(MkdsF, langID, trackId, length, Thingy);
 

@@ -40,7 +40,7 @@ int COPIEDcompareMemory(char *b1, char *b2, int nMax, int nAbsoluteMax)
     }
     return nSame;
 }
-char *COPIEDlz77compress(char *buffer, int size, unsigned int *compressedSize)
+unsigned char *COPIEDlz77compress(char *buffer, int size, unsigned int *compressedSize)
 {
     int compressedMaxSize = 4 + 9 * ((size + 7) >> 3);
     char *compressed = (char *)malloc(compressedMaxSize);
@@ -294,12 +294,24 @@ char *getBMGFile(char *DecompedCarc, ENTRY bmg)
     }
     return result;
 }
-
+void modifyArrayOffset(unsigned int *array, unsigned int TrackID, int DeltaS, char *bmg)
+{
+    unsigned int num = getNumBmg(bmg);
+    while (--num + 1)
+    {
+        if (array[num] > array[TrackID + STARTTRACKMSG])
+        {
+            array[num] = array[num] + DeltaS;
+            *(unsigned int *)&bmg[0x30 + (num * sizeof(int))] = array[num];
+        }
+    }
+}
 char *ReplMSG(char *bmg, char *buffer, unsigned int trackID, unsigned int charSize, unsigned int bmgSize, unsigned int *array, int *delta)
 {
     int deltaS = (int)charSize - (int)lenMSG(trackID, array);
     int NSize = (int)bmgSize + deltaS;
     *delta = deltaS;
+    modifyArrayOffset(array, trackID, deltaS, bmg);
     char *result = malloc(NSize);
     for (int i = 0; i < NSize; i++)
     {
@@ -316,6 +328,7 @@ char *ReplMSG(char *bmg, char *buffer, unsigned int trackID, unsigned int charSi
             result[i] = bmg[i - deltaS];
         }
     }
+
     free(bmg);
     return result;
 }
@@ -343,7 +356,7 @@ char *putBMGinDecompCarc(char *DecompC, char *bmg, int deltaS, ENTRY bmgAddr, in
     return result;
 }
 /// ///  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   THOSE FUNCTIONS ARE SHITTILY WRITTEN
-char *replaceATrackName(unsigned int TrackNum, char *DecompedCarc, char *newName, unsigned int charSize, int *uncompSize)
+char *replaceATrackName(unsigned int TrackNum, char *DecompedCarc, char *newName, unsigned int charSize, unsigned int *uncompSize)
 {
     char *officialBuffer = malloc(512);
     officialBuffer = charToCompatChar(newName, officialBuffer, &charSize);
@@ -377,13 +390,15 @@ void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, c
     char *buf = malloc(size);
     fread(buf, size, 1, mkds);
 
-    int uncompSize;
+    unsigned int uncompSize;
     char *res = COPIEDlz77decompress(buf, size, &uncompSize);
     res = replaceATrackName(TrackID, res, charl, charLength, &uncompSize);
-    int compSize;
+    unsigned int compSize;
     res = COPIEDlz77compress(res, uncompSize, &compSize);
     putDataInRom(compSize, res, mkds, getCourse(language));
-    free(res);
+
+    // free(res);
+
     free(buf);
 }
 
