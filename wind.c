@@ -3,8 +3,9 @@
 #include "putFile.h"
 #include "carcPut.h"
 #include "windowST.h"
+#include "res.h"
 
-HWND texText, texTextM, texTextC, texTextN, texTextN2, texTextN3, mapText, hBX, hBY, hTX, hTY, hName;
+HWND texText, texTextM, texTextC, texTextN, texTextN2, texTextN3, mapText, hBX, hBY, hTX, hTY, hName, bank;
 char isLocal;
 #define CARC_IMPORT 0x2
 #define MKDS_IMPORT 0x4
@@ -18,8 +19,17 @@ char isLocal;
 #define FILE_REP 0x8
 #define NC_REP 0x100
 #define RENAME 0x800
+#define MUS_REP 0x1000
 
 #define OFFSET 100 // Kinda hacky or smth but hey it modifies faster the x pos of the map stufff
+// FUCK IT WE BALL
+#define CARC_Y 215
+#define BASE_X 30
+#define NC_Y 335
+#define TXT_YOFFS 6
+#define TRACKNNAME_Y 80
+#define MKDS_Y 20
+#define MAP_Y 520
 
 LRESULT CALLBACK WindProce(HWND, UINT, WPARAM, LPARAM);
 BOOL EnforceSignedIntegerEdit(HWND);
@@ -35,62 +45,71 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     wc.hInstance = hInst;
     wc.lpszClassName = L"windo";
     wc.lpfnWndProc = WindProce;
+    wc.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IC_ICON));
 
     if (!(RegisterClassW(&wc)))
         return -1;
 
-    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 1000, 700, NULL, NULL, NULL, NULL);
+    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
 
-    HWND hwndButtonTex = CreateWindowW(L"BUTTON", L"Is Tex Carc ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, 50, 25, 120, 30, hWnd, (HMENU)TEX_BOX, NULL, NULL);
+    texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, MKDS_Y, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
 
-    texText = CreateWindowW(L"STATIC", L"Not Tex Carc", WS_VISIBLE | WS_CHILD, 175, 31, 1200, 30, hWnd, NULL, NULL, NULL);
+    HWND hwndButtonTex = CreateWindowW(L"BUTTON", L"Is Tex Carc ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, BASE_X, CARC_Y - 30, 120, 30, hWnd, (HMENU)TEX_BOX, NULL, NULL);
+    texText = CreateWindowW(L"STATIC", L"Not Tex Carc", WS_VISIBLE | WS_CHILD, BASE_X + 125, CARC_Y - 30 + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    texTextC = CreateWindowW(L"STATIC", L"CARC", WS_VISIBLE | WS_CHILD, BASE_X + 125, CARC_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    HWND hwndButtonCarc = CreateWindowW(L"BUTTON", L"Import Carc", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, CARC_Y, 100, 30, hWnd, (HMENU)CARC_IMPORT, NULL, NULL);
+    HWND hwndButtonTrack = CreateWindowW(L"BUTTON", L"Replace", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, CARC_Y + 40, 100, 30, hWnd, (HMENU)FILE_REP, NULL, NULL);
 
-    texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, 175, 145, 1200, 30, hWnd, NULL, NULL, NULL);
+    hwndCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, BASE_X, TRACKNNAME_Y, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
+    langCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 450, TRACKNNAME_Y, 120, 240, hWnd, NULL, hInst, NULL);
 
-    texTextC = CreateWindowW(L"STATIC", L"CARC", WS_VISIBLE | WS_CHILD, 175, 100, 1200, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Name :", WS_VISIBLE | WS_CHILD, 325, TRACKNNAME_Y - 30, 80, 26, hWnd, NULL, NULL, NULL);
+    hName = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 325, TRACKNNAME_Y - 2, 100, 26, hWnd, 0, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Rename", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 590, TRACKNNAME_Y - 7, 100, 30, hWnd, (HMENU)RENAME, NULL, NULL);
+    musicCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, BASE_X, TRACKNNAME_Y + 70, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
+    CreateWindowW(L"STATIC", L"Music :", WS_VISIBLE | WS_CHILD, BASE_X, TRACKNNAME_Y + 45, 120, 25, hWnd, NULL, NULL, NULL);
+    bank = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL | ES_NUMBER, BASE_X + 270, TRACKNNAME_Y + 68, 100, 26, hWnd, 0, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Sound Effect ID :", WS_VISIBLE | WS_CHILD, BASE_X + 260, TRACKNNAME_Y + 45, 260, 23, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X + 385, TRACKNNAME_Y + 64, 100, 30, hWnd, (HMENU)MUS_REP, NULL, NULL);
 
-    HWND hwndButtonCarc = CreateWindowW(L"BUTTON", L"Import Carc", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 95, 100, 30, hWnd, (HMENU)CARC_IMPORT, NULL, NULL);
-
-    HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 140, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
-    HWND hwndButtonTrack = CreateWindowW(L"BUTTON", L"Replace", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 185, 100, 30, hWnd, (HMENU)FILE_REP, NULL, NULL);
-    hwndCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 50, 60, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
-    langCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 450, 60, 120, 240, hWnd, NULL, hInst, NULL);
-    CreateWindowW(L"STATIC", L"Name :", WS_VISIBLE | WS_CHILD, 325, 35, 80, 26, hWnd, NULL, NULL, NULL);
-    hName = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 325, 58, 100, 26, hWnd, 0, NULL, NULL);
-    CreateWindowW(L"BUTTON", L"Rename", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 590, 60, 100, 30, hWnd, (HMENU)RENAME, NULL, NULL);
-
+    SendMessage(bank, EM_SETLIMITTEXT, 2, NULL);
     SendMessage(hName, EM_SETLIMITTEXT, 25, NULL);
 
-    HWND hwndButtonNCGR = CreateWindowW(L"BUTTON", L"Import NCGR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 295, 100, 30, hWnd, (HMENU)NCGR, NULL, NULL);
-    HWND hwndButtonNCLR = CreateWindowW(L"BUTTON", L"Import NCLR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 335, 100, 30, hWnd, (HMENU)NCLR, NULL, NULL);
-    HWND hwndButtonNSCR = CreateWindowW(L"BUTTON", L"Import NSCR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 375, 100, 30, hWnd, (HMENU)NSCR, NULL, NULL);
-    texTextN = CreateWindowW(L"STATIC", L"NCGR", WS_VISIBLE | WS_CHILD, 175, 300, 1200, 30, hWnd, NULL, NULL, NULL);
+    HWND hwndButtonNCGR = CreateWindowW(L"BUTTON", L"Import NCGR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, NC_Y, 100, 30, hWnd, (HMENU)NCGR, NULL, NULL);
+    HWND hwndButtonNCLR = CreateWindowW(L"BUTTON", L"Import NCLR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, NC_Y + 40, 100, 30, hWnd, (HMENU)NCLR, NULL, NULL);
+    HWND hwndButtonNSCR = CreateWindowW(L"BUTTON", L"Import NSCR", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, NC_Y + 80, 100, 30, hWnd, (HMENU)NSCR, NULL, NULL);
+    texTextN = CreateWindowW(L"STATIC", L"NCGR", WS_VISIBLE | WS_CHILD, BASE_X + 125, NC_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    texTextN2 = CreateWindowW(L"STATIC", L"NCLR", WS_VISIBLE | WS_CHILD, BASE_X + 125, NC_Y + 40 + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    texTextN3 = CreateWindowW(L"STATIC", L"NSCR", WS_VISIBLE | WS_CHILD, BASE_X + 125, NC_Y + 80 + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    HWND hwndButtonNC = CreateWindowW(L"BUTTON", L"Change", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, NC_Y + 125, 100, 30, hWnd, (HMENU)NC_REP, NULL, NULL);
 
-    texTextN2 = CreateWindowW(L"STATIC", L"NCLR", WS_VISIBLE | WS_CHILD, 175, 340, 1200, 30, hWnd, NULL, NULL, NULL);
-
-    texTextN3 = CreateWindowW(L"STATIC", L"NSCR", WS_VISIBLE | WS_CHILD, 175, 380, 1200, 30, hWnd, NULL, NULL, NULL);
-    HWND hwndButtonNC = CreateWindowW(L"BUTTON", L"Change", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 50, 420, 100, 30, hWnd, (HMENU)NC_REP, NULL, NULL);
-    hTX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80 + OFFSET, 520, 100, 26, hWnd, 0, NULL, NULL);
-    hBX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 80 + OFFSET, 570, 100, 26, hWnd, 0, NULL, NULL);
-    hTY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230 + OFFSET, 520, 100, 26, hWnd, 0, NULL, NULL);
-    hBY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 230 + OFFSET, 570, 100, 26, hWnd, 0, NULL, NULL);
+    hTX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, BASE_X + 30 + OFFSET, MAP_Y, 100, 26, hWnd, 0, NULL, NULL);
+    hBX = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, BASE_X + 30 + OFFSET, MAP_Y + 50, 100, 26, hWnd, 0, NULL, NULL);
+    hTY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, BASE_X + 180 + OFFSET, MAP_Y, 100, 26, hWnd, 0, NULL, NULL);
+    hBY = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, BASE_X + 180 + OFFSET, MAP_Y + 50, 100, 26, hWnd, 0, NULL, NULL);
     EnforceSignedIntegerEdit(hTX);
     EnforceSignedIntegerEdit(hTY);
     EnforceSignedIntegerEdit(hBX);
     EnforceSignedIntegerEdit(hBY);
-    CreateWindowW(L"STATIC", L"Top Left :", WS_VISIBLE | WS_CHILD, 50, 525, 100, 30, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"Bottom Right :", WS_VISIBLE | WS_CHILD, 50, 575, 100, 30, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"X :", WS_VISIBLE | WS_CHILD, 80 + OFFSET, 494, 100, 26, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"STATIC", L"Y :", WS_VISIBLE | WS_CHILD, 230 + OFFSET, 494, 100, 26, hWnd, NULL, NULL, NULL);
-    CreateWindowW(L"BUTTON", L"Local Map ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, 360 + OFFSET, 520, 120, 30, hWnd, (HMENU)MAP_PUSH, NULL, NULL);
-    CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 360 + OFFSET, 566, 100, 30, hWnd, (HMENU)MAP_REP, NULL, NULL);
-    mapText = CreateWindowW(L"STATIC", L"Global Map", WS_VISIBLE | WS_CHILD, 480 + OFFSET, 526, 1200, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Top Left :", WS_VISIBLE | WS_CHILD, BASE_X, MAP_Y + TXT_YOFFS, 100, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Bottom Right :", WS_VISIBLE | WS_CHILD, BASE_X, MAP_Y + 50 + TXT_YOFFS, 100, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"X :", WS_VISIBLE | WS_CHILD, BASE_X + 30 + OFFSET, MAP_Y - 26, 100, 26, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Y :", WS_VISIBLE | WS_CHILD, BASE_X + 180 + OFFSET, MAP_Y - 26, 100, 26, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Local Map ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, BASE_X + 310 + OFFSET, MAP_Y, 120, 30, hWnd, (HMENU)MAP_PUSH, NULL, NULL);
+    mapText = CreateWindowW(L"STATIC", L"Global Map", WS_VISIBLE | WS_CHILD, BASE_X + 430 + OFFSET, MAP_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X + 310 + OFFSET, MAP_Y + 46, 100, 30, hWnd, (HMENU)MAP_REP, NULL, NULL);
 
     for (int i = 0; i < TRACKS; i++)
     {
         SendMessage(hwndCBS, CB_ADDSTRING, 0, TrckNames[i]);
     }
     SendMessage(hwndCBS, CB_SETCURSEL, 0, 0);
+    for (int i = 0; i < TRACKSMUS; i++)
+    {
+        SendMessage(musicCBS, CB_ADDSTRING, 0, TrckMusNames[i]);
+    }
+    SendMessage(musicCBS, CB_SETCURSEL, 0, 0);
     SendMessageW(langCBS, CB_ADDSTRING, 0, L"English");
     SendMessageW(langCBS, CB_ADDSTRING, 0, L"Italiano");
     SendMessageW(langCBS, CB_ADDSTRING, 0, L"Deutsch");
@@ -110,6 +129,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 //
 //
 //
+
 //
 ///
 //
@@ -225,6 +245,7 @@ void dealString(char t[4][7])
 LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     int NC__;
+    int ba;
     switch (msg)
     {
         /*  case WM_CREATE:
@@ -340,13 +361,14 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             /* SetWindowTextA(texTextN, openerNCGR.lpstrFile);
             SetWindowTextA(texTextN2, openerNCLR.lpstrFile);
             SetWindowTextA(texTextN3, openerNSCR.lpstrFile); */
-            if (!dialogForCarc(MKDS))
+            ba = dialogForCarc(MKDS);
+            if (!ba)
             {
 
                 openerM.lpstrFile = "";
-                MessageBox(hWnd, "Error importing the MKDS Rom. Please retry", "Error importing the MKDS Rom", MB_ICONEXCLAMATION);
+                MessageBox(hWnd, "Error importing the MKDS Rom. Please retry", "Error importing the MKDS Rom", MB_ICONERROR);
             }
-            else
+            else if (ba != 2)
             {
                 SetWindowTextA(texTextM, openerM.lpstrFile);
                 if (!checkDecomp(MkdsF))
@@ -363,20 +385,26 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
 
         case CARC_IMPORT:
-            if (!dialogForCarc(CARC))
+            ba = dialogForCarc(CARC);
+            if (!ba)
             {
                 openerM.lpstrFile = "";
-                MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONEXCLAMATION);
+                MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
             }
-            else
+            else if (ba != 2)
             {
                 SetWindowTextA(texTextC, openerC.lpstrFile);
             }
             break;
 
         case FILE_REP:
+            if (!MkdsF)
+            {
+                MessageBox(hWnd, "Error, Please import an (EU) Mario Kart DS Rom", "Error", MB_ICONERROR);
+                goto brk5;
+            }
             if (!trackReplacing())
-                MessageBox(hWnd, "Error Replacing the Track.\nEither the Carc missing, the MKDS Rom is missing or an unknown issue occured.\nPlease retry", "Error Replacing", MB_ICONERROR);
+                MessageBox(hWnd, "Error Replacing the Track.\nEither the Carc is missing or an unknown issue occured.\nPlease retry", "Error Replacing", MB_ICONERROR);
             else if (isTex)
             {
                 MessageBox(hWnd, "Success Normally !\nRemember to add the Course Model Carc if not done !", "Success", MB_ICONINFORMATION);
@@ -389,7 +417,9 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
                 SetWindowTextA(texTextC, openerC.lpstrFile);
                 MessageBox(hWnd, "Success Normally !\nRemember to add the Texture Carc if not done !", "Success", MB_ICONINFORMATION);
             }
+        brk5:
             break;
+
         case NCGR:
             NC__ = 0;
             goto NCC;
@@ -399,11 +429,12 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
         case NSCR:
             NC__ = 2;
         NCC:
-            if (!dialogForNC(NC__))
+            ba = dialogForNC(NC__);
+            if (!ba)
             {
                 MessageBox(hWnd, "Error importing\nPlease retry", "Error", MB_ICONERROR);
             }
-            else
+            else if (ba != 2)
             {
                 switch (NC__)
                 {
@@ -423,6 +454,11 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             break;
         case NC_REP:
             int a = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+            if (!MkdsF)
+            {
+                MessageBox(hWnd, "Error, Please import an (EU) Mario Kart DS Rom", "Error", MB_ICONERROR);
+                goto brk4;
+            }
             if (a < TRACKS - 6)
             {
                 if (!NCReplacing(a))
@@ -442,10 +478,49 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             {
                 MessageBox(hWnd, "Error .\nBattle Pics Not Supported", "Error", MB_ICONERROR);
             }
+        brk4:
+            break;
+
+        case MUS_REP:
+            if (!MkdsF)
+            {
+                MessageBox(hWnd, "Error, Please import an (EU) Mario Kart DS Rom", "Error", MB_ICONERROR);
+                goto brk3;
+            }
+            if (!checkDecomp(MkdsF))
+            {
+                int ans = MessageBox(hWnd, "Please decompress your ROM's ARM9 to proceed.", "Hey !", MB_ICONQUESTION | MB_YESNO | MB_APPLMODAL);
+                if (ans == IDYES)
+                {
+
+                    decompArm9ToRom(MkdsF, hWnd);
+                    MessageBox(hWnd, "Successfully decompressed (normally)!", "Success", MB_ICONINFORMATION);
+                }
+                else
+                    goto brk3;
+            }
+            char bankID[3];
+            GetWindowTextA(bank, bankID, 3);
+            int TrackRepl = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+            int MusRepl = SendMessage(musicCBS, CB_GETCURSEL, 0, 0);
+            switch (musRepl(TrackRepl, MusRepl, atoi(bankID)))
+            {
+            case 2:
+                MessageBox(hWnd, "Battle Track Music not supported", "Error", MB_ICONERROR);
+                break;
+            case 1:
+                MessageBox(hWnd, "Success Normally !", "Success", MB_ICONINFORMATION);
+                break;
+            default:
+                MessageBox(hWnd, "Invalid Sound Effect ID", "Error", MB_ICONERROR);
+                break;
+            }
+
+        brk3:
             break;
         }
-
         break;
+
     case WM_DESTROY:
         if (MkdsF)
             fclose(MkdsF);

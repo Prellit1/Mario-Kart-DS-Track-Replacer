@@ -3,8 +3,50 @@
 OPENFILENAME openerM, openerC, openerNCLR, openerNCGR, openerNSCR;
 FILE *MkdsF, *CarcF, *ncgr, *nclr, *nscr;
 HWND hWnd;
-HWND hwndCBS, langCBS;
+HWND hwndCBS, langCBS, musicCBS;
 int isTex;
+
+char TrckMusNames[TRACKSMUS][30] = {
+
+    "Circuit",
+    "Yoshi Falls",
+    "Beach",
+    "Mansion",
+
+    "Desert",
+    "Delfino Squares",
+    "Stadium/Pinball",
+    "Shroom Ridge",
+
+    "DK Pass",
+    "Tick Tock Clock",
+    "Airship Fortress",
+
+    "Peach Garden",
+    "Bowser Castle",
+    "Rainbow Road",
+
+    "SNES Mario Circuit",
+    "N64 Moo Moo Farm",
+    "GBA Circuit",
+    "GCN Luigi Circuit",
+
+    "SNES Donut Plains",
+    "N64 Frappe Snowland",
+    "GBA Bowser Castle",
+    "GCN Baby Park",
+
+    "SNES Koopa Beach",
+    "N64 Choco Mountain",
+    "GCN Mushroom Bridge",
+
+    "SNES Choco Island",
+    "N64 Banshee Broadwalk",
+    "GBA Sky Garden",
+
+    "Battle",
+
+};
 char TrckNames[TRACKS][50] = {
 
     "Figure 8 Circuit",
@@ -148,7 +190,7 @@ int modifCurs(int curs)
 int NCReplacing(int curs)
 {
     curs = modifCurs(curs);
-    if (nscr && nclr && ncgr && MkdsF)
+    if (nscr && nclr && ncgr)
     {
         getFat(MkdsF);
         ENTRY_FAT Ncgr = getCourse(153 + curs * 3);
@@ -223,6 +265,8 @@ int dialogForCarc(int CarcOrMkds)
         }
         return 1;
     }
+    if (!CommDlgExtendedError())
+        return 2;
     return 0;
 }
 
@@ -293,6 +337,8 @@ int dialogForNC(int NC)
         }
         return 1;
     }
+    if (!CommDlgExtendedError())
+        return 2;
     return 0;
 }
 
@@ -347,4 +393,19 @@ int nameReplacing(char *Thingy, unsigned int length)
         return 1;
     }
     return 0;
+}
+
+int musRepl(int trackCur, int musCur, int bankID)
+{
+    trackCur = modifCurs(trackCur);
+    if (cursorToTableID[trackCur] == 39)
+    {
+        return 2;
+    }
+    if (bankID && (bankID < 16 || bankID > 33) && bankID != 43 && bankID != 48)
+    {
+        return 0;
+    }
+    replMusic(MkdsF, trackCur, musCur, bankID);
+    return 1;
 }
