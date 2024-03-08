@@ -1,7 +1,7 @@
 #include "common.h"
 #pragma once
 
-int getFileLength(FILE *a);
+unsigned int getFileLength(FILE *a);
 void *putFileInPointer(FILE *file);
 void *getRestOfFileWithOffsetAlsoSetCursorToAddrOfReplacedData(FILE *file, int addrOfStartOfReplData, int numOfDataReplaced);
 

@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 
     hWnd = CreateWindowW(L"windo", L"Track Replacer 0.0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
 
-    texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
+    texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 27, hWnd, NULL, NULL, NULL);
     HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, MKDS_Y, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
 
     HWND hwndButtonTex = CreateWindowW(L"BUTTON", L"Is Tex Carc ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, BASE_X, CARC_Y - 30, 120, 30, hWnd, (HMENU)TEX_BOX, NULL, NULL);
@@ -64,7 +64,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     hwndCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, BASE_X, TRACKNNAME_Y, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
     langCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, 450, TRACKNNAME_Y, 120, 240, hWnd, NULL, hInst, NULL);
 
-    CreateWindowW(L"STATIC", L"Name :", WS_VISIBLE | WS_CHILD, 325, TRACKNNAME_Y - 30, 80, 26, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"Name :", WS_VISIBLE | WS_CHILD, 325, TRACKNNAME_Y - 26, 80, 20, hWnd, NULL, NULL, NULL);
     hName = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL, 325, TRACKNNAME_Y - 2, 100, 26, hWnd, 0, NULL, NULL);
     CreateWindowW(L"BUTTON", L"Rename", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, 590, TRACKNNAME_Y - 7, 100, 30, hWnd, (HMENU)RENAME, NULL, NULL);
     musicCBS = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_OVERLAPPED | WS_VSCROLL, BASE_X, TRACKNNAME_Y + 70, 250, 240 /* * TRACKS */, hWnd, NULL, hInst, NULL);
@@ -403,19 +403,23 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
                 MessageBox(hWnd, "Error, Please import an (EU) Mario Kart DS Rom", "Error", MB_ICONERROR);
                 goto brk5;
             }
-            if (!trackReplacing())
+            ba = trackReplacing();
+            if (!ba)
                 MessageBox(hWnd, "Error Replacing the Track.\nEither the Carc is missing or an unknown issue occured.\nPlease retry", "Error Replacing", MB_ICONERROR);
-            else if (isTex)
+            else if (ba == 1)
             {
-                MessageBox(hWnd, "Success Normally !\nRemember to add the Course Model Carc if not done !", "Success", MB_ICONINFORMATION);
+                if (isTex)
+                {
+                    MessageBox(hWnd, "Success Normally !\nRemember to add the Course Model Carc if not done !", "Success", MB_ICONINFORMATION);
 
-                SetWindowTextA(texTextC, openerC.lpstrFile);
-            }
-            else
-            {
+                    SetWindowTextA(texTextC, openerC.lpstrFile);
+                }
+                else
+                {
 
-                SetWindowTextA(texTextC, openerC.lpstrFile);
-                MessageBox(hWnd, "Success Normally !\nRemember to add the Texture Carc if not done !", "Success", MB_ICONINFORMATION);
+                    SetWindowTextA(texTextC, openerC.lpstrFile);
+                    MessageBox(hWnd, "Success Normally !\nRemember to add the Texture Carc if not done !", "Success", MB_ICONINFORMATION);
+                }
             }
         brk5:
             break;

@@ -1,10 +1,10 @@
 #include "FileAdd.h"
 
-int getFileLength(FILE *a)
+unsigned int getFileLength(FILE *a)
 { // gets the file length after the offset (prob with cursor func)
 
     fseek(a, 0, SEEK_END);
-    int result = ftell(a);
+    unsigned int result = ftell(a);
     fseek(a, 0, SEEK_SET);
 
     return result;

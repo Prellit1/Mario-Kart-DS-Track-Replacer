@@ -53,6 +53,7 @@ void putCarcInRom(FILE *Carc, FILE *Mkds, int Id, char isTex)
 void putFileInRom(FILE *File, FILE *Mkds, ENTRY_FAT entry)
 {
     unsigned int sizeFile = getFileLength(File);
+    // printf("%d  %u\n", sizeFile, entry.size);
     void *pFile = putFileInPointer(File);
     putDataInRom(sizeFile, pFile, Mkds, entry);
 }
