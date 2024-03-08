@@ -6,7 +6,7 @@ This tool's goal is to offer an easy way for modders and non modders to import t
 
 ## For people wanting to modify it
 
-GOOD LUCK !! This code is full of bad decision, badly written or named shit and like around 5 copied functions. Torture yourself with win32 !
+GOOD LUCK !! This code is full of bad decision, badly written or named shit and like around 5 or more copied functions. Torture yourself with win32 !
 
 ## Credits
 
