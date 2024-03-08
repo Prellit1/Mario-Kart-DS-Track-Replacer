@@ -10,7 +10,7 @@ GOOD LUCK !! This code is full of bad decision, badly written or named shit and 
 
 ## Credits
 
-Help (all types, from recommandations to the like 5 Functions i copied) : Rocoloco321, Gericom, Ermelber, Garhoogin
+Help (all types, from recommandations to the Functions i copied : All important) : Rocoloco321, Gericom, Ermelber, Garhoogin, Xgone
 Program : Me
 
 ## BUG REPORTS :
