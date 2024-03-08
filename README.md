@@ -16,4 +16,4 @@ Program : Me
 
 ## BUG REPORTS :
 
-For now the only bug I know of is that by using the rename functionnality, you have a slight chance of making the game show placeholders for character icons in the character selection menu. It can also fix itself by renaming. Play russian roulette with it tbh.
+If you find a bug or have an issue or there's something you don't understand, contact me on Discord (prellit) or Twitter (@prellit_modding).
