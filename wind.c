@@ -71,6 +71,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     CreateWindowW(L"STATIC", L"Music :", WS_VISIBLE | WS_CHILD, BASE_X, TRACKNNAME_Y + 45, 120, 25, hWnd, NULL, NULL, NULL);
     bank = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_DLGFRAME | ES_AUTOHSCROLL | ES_NUMBER, BASE_X + 270, TRACKNNAME_Y + 68, 100, 26, hWnd, 0, NULL, NULL);
     CreateWindowW(L"STATIC", L"Sound Effect ID :", WS_VISIBLE | WS_CHILD, BASE_X + 260, TRACKNNAME_Y + 45, 260, 23, hWnd, NULL, NULL, NULL);
+    CreateWindowW(L"STATIC", L"(Optionnal)", WS_VISIBLE | WS_CHILD, BASE_X + 284, TRACKNNAME_Y + 95, 260, 23, hWnd, NULL, NULL, NULL);
     CreateWindowW(L"BUTTON", L"Modify", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X + 385, TRACKNNAME_Y + 64, 100, 30, hWnd, (HMENU)MUS_REP, NULL, NULL);
 
     SendMessage(bank, EM_SETLIMITTEXT, 2, NULL);
@@ -323,7 +324,10 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
                 goto brk;
             }
             else if (temp2 == 2)
-                MessageBox(hWnd, "Empty strings are treated as 0s. Check your inputs.", "Warning", MB_ICONWARNING);
+            {
+                MessageBox(hWnd, "Empty or only 0 coordinates aren't accepted. Check your inputs.", "Warning", MB_ICONWARNING);
+                goto brk;
+            }
 
             if (!LocGlobRepl(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]), isLocal))
 
