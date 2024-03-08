@@ -50,7 +50,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     if (!(RegisterClassW(&wc)))
         return -1;
 
-    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
+    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
 
     texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 27, hWnd, NULL, NULL, NULL);
     HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, MKDS_Y, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
