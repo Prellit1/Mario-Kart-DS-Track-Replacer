@@ -398,9 +398,9 @@ void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, c
     unsigned int uncompSize;
     char *res = COPIEDlz77decompress(buf, size, &uncompSize);
     res = replaceATrackName(TrackID, res, charl, charLength, &uncompSize);
-    FILE *f = fopen("C:/Users/UserPC/OneDrive/Bureau/GET DDATA/MKDS/a", "wb");
+    /* FILE *f = fopen("C:/Users/UserPC/OneDrive/Bureau/GET DDATA/MKDS/a", "wb");
     fwrite(res, uncompSize, 1, f);
-    fclose(f);
+    fclose(f); */
     unsigned int compSize;
     res = COPIEDlz77compress(res, uncompSize, &compSize);
     putDataInRom(compSize, res, mkds, getCourse(language));
