@@ -227,8 +227,12 @@ unsigned int lenMSG(unsigned int TrackNum, unsigned int *array)
 {
     return (array[TrackNum + STARTTRACKMSG + 1] - array[TrackNum + STARTTRACKMSG]);
 }
-char *charToCompatChar(char *input, char *buffer, unsigned int *size)
+char *charToCompatChar(char *input, char *buffer, unsigned int *size, unsigned int bmgSize, unsigned int *array, unsigned int trackID)
 {
+    int temp = ((*size + 1) * 2) - lenMSG(trackID, array); //
+    if ((temp + bmgSize) % 4)                              // So hacky but i think itll fix the placeholder issue
+        *size = *size + 1;                                 //
+
     for (unsigned int i = 0; i <= *size; i++) // i think the windows function doesnt take the \0 into account so im gonna forcefully add it
     {
         buffer[i * 2] = input[i];
@@ -359,13 +363,14 @@ char *putBMGinDecompCarc(char *DecompC, char *bmg, int deltaS, ENTRY bmgAddr, in
 char *replaceATrackName(unsigned int TrackNum, char *DecompedCarc, char *newName, unsigned int charSize, unsigned int *uncompSize)
 {
     char *officialBuffer = malloc(512);
-    officialBuffer = charToCompatChar(newName, officialBuffer, &charSize);
-    unsigned int newSize = charSize;
 
     char *bmg = getBMGFile(DecompedCarc, getBmgAddr(DecompedCarc));
-
     unsigned int bmgSize = getSize(getBmgAddr(DecompedCarc));
     unsigned int *array = getAllMSGOffsets(bmg);
+
+    officialBuffer = charToCompatChar(newName, officialBuffer, &charSize, bmgSize, array, TrackNum);
+    unsigned int newSize = charSize;
+
     int deltaS;
     bmg = ReplMSG(bmg, officialBuffer, TrackNum, newSize, bmgSize, array, &deltaS);
     DecompedCarc = putBMGinDecompCarc(DecompedCarc, bmg, deltaS, getBmgAddr(DecompedCarc), *uncompSize);
@@ -393,6 +398,9 @@ void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, c
     unsigned int uncompSize;
     char *res = COPIEDlz77decompress(buf, size, &uncompSize);
     res = replaceATrackName(TrackID, res, charl, charLength, &uncompSize);
+    FILE *f = fopen("C:/Users/UserPC/OneDrive/Bureau/GET DDATA/MKDS/a", "wb");
+    fwrite(res, uncompSize, 1, f);
+    fclose(f);
     unsigned int compSize;
     res = COPIEDlz77compress(res, uncompSize, &compSize);
     putDataInRom(compSize, res, mkds, getCourse(language));

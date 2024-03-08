@@ -102,7 +102,7 @@ char TrckNames[TRACKS][50] = {
     "Palm Shore",
 };
 
-char TrckId[TRACKS] = {
+unsigned char TrckId[TRACKS] = {
     CROSSnDL,
     CROSSDL,
     YOSHFALL,
@@ -158,9 +158,16 @@ char TrckId[TRACKS] = {
 };
 int trackReplacing()
 {
-    if (openerC.lpstrFile[0] != '\0' && openerM.lpstrFile[0] != '\0')
+    if (CarcF && MkdsF)
     {
         int a = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+        if (a == 8)
+        {
+            int resp = MessageBox(hWnd, "Warning : If the carc that contains the model and the map data doesn't have a bridge object, the game will crash on this slot. Proceed ?", "Warning", MB_ICONWARNING | MB_YESNO);
+            if (resp == IDNO)
+                return 2;
+        }
+        /* printf("%u, %u %d    %d    %d\n", a, PINBALL, PINBALL, TrckId[a], TrckId[9]); */
         putCarcInRom(CarcF, MkdsF, TrckId[a], isTex);
         openerC.lpstrFile = "";
         // openerM.lpstrFile = "";
@@ -190,17 +197,24 @@ int modifCurs(int curs)
 int NCReplacing(int curs)
 {
     curs = modifCurs(curs);
+    getFat(MkdsF);
     if (nscr && nclr && ncgr)
     {
-        getFat(MkdsF);
-        ENTRY_FAT Ncgr = getCourse(153 + curs * 3);
-        ENTRY_FAT Nclr = getCourse(153 + 1 + curs * 3);
-        ENTRY_FAT Nscr = getCourse(153 + 2 + curs * 3);
 
-        // printf("%d,   %d,   %d\n", Ncgr.addressStart, Nclr.addressStart, Nscr.addressStart);
+        /* printf("%d,   %d,   %d\n", Ncgr.addressStart, Nclr.addressStart, Nscr.addressStart);
+printf("%d,   %d,   %d\n", Ncgr.size, Nclr.size, Nscr.size);
+printf("%d,   %d,   %d\n", Ncgr.id, Nclr.id, Nscr.id); */
+        ENTRY_FAT Ncgr = getCourse(153 + curs * 3);
         putFileInRom(ncgr, MkdsF, Ncgr);
+        getFat(MkdsF);
+
+        ENTRY_FAT Nclr = getCourse(153 + 1 + curs * 3);
         putFileInRom(nclr, MkdsF, Nclr);
+        getFat(MkdsF);
+
+        ENTRY_FAT Nscr = getCourse(153 + 2 + curs * 3);
         putFileInRom(nscr, MkdsF, Nscr);
+        getFat(MkdsF);
         openerNCGR.lpstrFile = "";
         openerNCLR.lpstrFile = "";
         openerNSCR.lpstrFile = "";
@@ -386,6 +400,10 @@ int nameReplacing(char *Thingy, unsigned int length)
     if (MkdsF)
     {
         int trackId = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+        if (trackId >= 37)
+        {
+            MessageBox(hWnd, "Warning : Only the name during the intro will change as Battle Tracks' names on the menu are graphics and not really text", "Warning", MB_ICONWARNING);
+        }
         trackId = modifCurs(trackId);
         int langID = SendMessage(langCBS, CB_GETCURSEL, 0, 0);
         MKDSReplTrack(MkdsF, langID, trackId, length, Thingy);

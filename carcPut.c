@@ -85,7 +85,7 @@ ENTRY_FAT getCourse(int id)
     ENTRY_FAT course;
     course.addressStart = allTheFat[id].addressStart;
     course.size = (allTheFat[id].addressEnd) - (allTheFat[id].addressStart);
-    // printf("%d,  %d  | %d\n", allTheFat[id].addressStart, id, allTheFat[CROSSnDL].addressStart);
+    // printf("%u,  %u  | %u  | %u\n", allTheFat[id].addressStart, allTheFat[id].addressEnd, allTheFat[id].addressEnd - allTheFat[id].addressStart, id);
     course.id = id;
     return course;
 }
@@ -112,9 +112,10 @@ void _readWrite(unsigned int cur, unsigned int offset, FILE *file)
 }
 void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
 {
-    unsigned int temp[2];
-    unsigned int offset;
+    int temp[2];
+    int offset;
     offset = newSize - entry.size;
+    /* printf("OFFSET/NWS/ENS : %d %d %d\n", offset, newSize, entry.size); */
     if (entry.id == 0xFF) // == fakeFat -> == arm9
     {
         unsigned int lengt = newSize;
@@ -143,13 +144,15 @@ void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
     {
         if (entry.addressStart < allTheFat[i].addressStart)
         {
-
+            /* printf("Modif %x %x %x\n", allTheFat[i].addressStart, allTheFat[i].addressEnd, entry.addressStart); */
             fseek(file, fatAddr + (i * 8), SEEK_SET);
             // fprintf(file, "%04x%04x", (allTheFat[i].addressStart + course.size), (allTheFat[i].addressEnd + course.size));
 
             temp[0] = (allTheFat[i].addressStart + offset);
             temp[1] = (allTheFat[i].addressEnd + offset);
             fwrite(temp, 8, 1, file);
+
+            /* printf("%x %x %d  \n", temp[0], temp[1], offset); */
         }
     }
 
