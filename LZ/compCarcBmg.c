@@ -230,8 +230,8 @@ unsigned int lenMSG(unsigned int TrackNum, unsigned int *array)
 char *charToCompatChar(char *input, char *buffer, unsigned int *size, unsigned int bmgSize, unsigned int *array, unsigned int trackID)
 {
     int temp = ((*size + 1) * 2) - lenMSG(trackID, array); //
-    if ((temp + bmgSize) % 4)                              // So hacky but i think itll fix the placeholder issue
-        *size = *size + 1;                                 //
+    if (temp % 0x10)                                       // So hacky but i think itll fix the placeholder issue
+        *size = *size + (0x10 - (temp % 0x10));            // and vanillas one maybe ?
 
     for (unsigned int i = 0; i <= *size; i++) // i think the windows function doesnt take the \0 into account so im gonna forcefully add it
     {

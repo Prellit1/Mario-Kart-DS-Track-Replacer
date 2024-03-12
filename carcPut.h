@@ -109,4 +109,5 @@ void getFat(FILE *mkds);
 ENTRY_FAT getCourse(int id);
 ENTRY_FAT getCourseTex(int idCourse);
 void moveAddrRelatToStartAddr(ENTRY_FAT course, unsigned int newSize, FILE *file);
-extern FATID allTheFat[FAT_LEN];
+extern FATID *allTheFat;
+extern int fatSize;

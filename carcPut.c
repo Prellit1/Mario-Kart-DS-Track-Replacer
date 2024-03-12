@@ -63,7 +63,8 @@ char trackIdConv[] = {
     6,
 };
 
-FATID allTheFat[FAT_LEN];
+FATID *allTheFat;
+int fatSize;
 unsigned int _getFatAddr(FILE *Mkds)
 {
     fseek(Mkds, 0x48, SEEK_SET);
@@ -73,9 +74,17 @@ unsigned int _getFatAddr(FILE *Mkds)
 }
 void getFat(FILE *mkds)
 {
+
     unsigned int addrF = _getFatAddr(mkds);
+    fseek(mkds, 0x4c, SEEK_SET);
+    // unsigned int size;
+    fread(&fatSize, 4, 1, mkds);
+    if (allTheFat)
+        free(allTheFat);
+    allTheFat = malloc(fatSize);
+
     fseek(mkds, addrF, SEEK_SET);
-    fread(allTheFat, sizeof(allTheFat), 1, mkds);
+    fread(allTheFat, fatSize, 1, mkds);
     fseek(mkds, 0, SEEK_SET);
     // printf("%x   -\n%d   +\n", allTheFat[AIRSHIP].addressStart, sizeof(allTheFat));
 }
@@ -140,7 +149,7 @@ void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
     fread(&fatAddr, sizeof(int), 1, file);
     // va_list lengi;
     // va_start(lengi, file);
-    for (int i = 0; i < FAT_LEN; i++)
+    for (int i = 0; i < fatSize; i++)
     {
         if (entry.addressStart < allTheFat[i].addressStart)
         {
