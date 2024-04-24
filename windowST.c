@@ -225,6 +225,7 @@ printf("%d,   %d,   %d\n", Ncgr.id, Nclr.id, Nscr.id); */
         fclose(ncgr);
         fclose(nclr);
         fclose(nscr);
+        freeFat();
         return 1;
     }
     return 0;
@@ -369,6 +370,7 @@ void decompArm9ToRom(FILE *Mkds, HWND Hwnd)
     fakeFat.size = size;
     fakeFat.id = 0xff;
     putDataInRom(leng, decompArm9, Mkds, fakeFat);
+    freeFat();
     free(arm9);
 }
 int checkDecomp(FILE *Mkds)

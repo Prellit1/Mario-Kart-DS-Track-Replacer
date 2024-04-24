@@ -111,3 +111,4 @@ ENTRY_FAT getCourseTex(int idCourse);
 void moveAddrRelatToStartAddr(ENTRY_FAT course, unsigned int newSize, FILE *file);
 extern FATID *allTheFat;
 extern int fatSize;
+void freeFat();

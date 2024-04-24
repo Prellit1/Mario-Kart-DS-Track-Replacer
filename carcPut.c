@@ -79,14 +79,21 @@ void getFat(FILE *mkds)
     fseek(mkds, 0x4c, SEEK_SET);
     // unsigned int size;
     fread(&fatSize, 4, 1, mkds);
-    if (allTheFat)
-        free(allTheFat);
+    freeFat();
     allTheFat = malloc(fatSize);
 
     fseek(mkds, addrF, SEEK_SET);
     fread(allTheFat, fatSize, 1, mkds);
     fseek(mkds, 0, SEEK_SET);
     // printf("%x   -\n%d   +\n", allTheFat[AIRSHIP].addressStart, sizeof(allTheFat));
+}
+void freeFat()
+{
+    if (allTheFat)
+    {
+        free(allTheFat);
+        allTheFat = NULL;
+    }
 }
 
 ENTRY_FAT getCourse(int id)

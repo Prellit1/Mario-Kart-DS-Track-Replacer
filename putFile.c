@@ -49,6 +49,7 @@ void putCarcInRom(FILE *Carc, FILE *Mkds, int Id, char isTex)
 
     /* free(pCarc);
     free(restOfMKDS); */
+    freeFat();
 }
 void putFileInRom(FILE *File, FILE *Mkds, ENTRY_FAT entry)
 {

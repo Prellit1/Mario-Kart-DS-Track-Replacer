@@ -408,6 +408,7 @@ void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, c
     // free(res);
 
     free(buf);
+    freeFat();
 }
 
 /* int main()
