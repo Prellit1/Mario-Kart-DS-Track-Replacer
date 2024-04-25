@@ -1,4 +1,5 @@
 #include "carc.h"
+#include <windows.h>
 short id = 0xF000;
 
 short id_file = 0;
@@ -84,10 +85,12 @@ narc_dict sort_dir(char *dir, char *path, int parent_id)
     return sorted_result;
 }
 
-void index_file(narc_dict sorted)
+int index_file(narc_dict sorted)
 {
     first_id_size++;
     first_id = first_id ? realloc(first_id, first_id_size * sizeof(int)) : malloc(first_id_size * sizeof(int));
+    if (!first_id)
+        return 0;
     first_id[first_id_size - 1] = id_file;
 
     for (int fileID = 0; fileID < sorted.size_file; fileID++)
@@ -97,8 +100,10 @@ void index_file(narc_dict sorted)
     for (int foldID = 0; foldID < sorted.size_folder; foldID++)
     {
 
-        index_file(((narc_dict *)sorted.folders)[foldID]);
+        if (!index_file(((narc_dict *)sorted.folders)[foldID]))
+            return 0;
     }
+    return 1;
 }
 void freeing_narcs(narc_dict dict)
 {
@@ -114,11 +119,15 @@ void freeing_narcs(narc_dict dict)
     free(dict.folders);
 }
 
-void load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, FILE *WRITE)
+int load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, FILE *WRITE)
 {
 
     int size = *prec_size;
     char *tmpSTR = malloc(3 + strlen(base_path) + strlen(sorted.name));
+
+    if (!tmpSTR)
+        return 0;
+
     strcpy(tmpSTR, base_path);
     strcat(tmpSTR, "\\");
     strcat(tmpSTR, sorted.name);
@@ -127,6 +136,13 @@ void load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, 
     {
         char ff = 0xff;
         char *tmpSTR2 = malloc(3 + strlen(tmpSTR) + strlen(sorted.files[fileID]));
+
+        if (!tmpSTR2)
+        {
+            free(tmpSTR);
+            return 0;
+        }
+
         strcpy(tmpSTR2, tmpSTR);
         strcat(tmpSTR2, "\\");
         strcat(tmpSTR2, sorted.files[fileID]);
@@ -144,6 +160,12 @@ void load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, 
 
         files_end_size++;
         files_end = !files_end ? malloc(files_end_size * sizeof(int) + 1) : realloc(files_end, files_end_size * sizeof(int) + 1);
+        if (!files_end)
+        {
+            free(tmpSTR);
+            free(tmpSTR2);
+            return 0;
+        }
         files_end[files_end_size - 1] = size;
         // printf("a\n");
 
@@ -151,10 +173,22 @@ void load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, 
 
         files_start_size++;
         files_start = realloc(files_start, files_start_size * sizeof(int) + 1);
+        if (!files_start)
+        {
+            free(tmpSTR);
+            free(tmpSTR2);
+            return 0;
+        }
         files_start[files_start_size - 1] = size;
         // printf("a\n");
 
         char *fileAlloc = malloc(alloc);
+        if (!fileAlloc)
+        {
+            free(tmpSTR);
+            free(tmpSTR2);
+            return 0;
+        }
         // FILES = realloc(FILES, size);
 
         fseek(file, 0, SEEK_SET);
@@ -183,9 +217,14 @@ void load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, 
     for (int foldID = 0; foldID < sorted.size_folder; foldID++)
     {
         // printf("%s\n", tmpSTR);
-        load_all_files(((narc_dict *)sorted.folders)[foldID], tmpSTR, prec_size, WRITE);
+        if (!load_all_files(((narc_dict *)sorted.folders)[foldID], tmpSTR, prec_size, WRITE))
+        {
+            free(tmpSTR);
+            return 0;
+        }
     }
     free(tmpSTR);
+    return 1;
 }
 void transmit_file(FILE *dst, FILE *src)
 {
@@ -210,16 +249,27 @@ void split_strs(char *whole_path, char *result)
 
 int convert_folders_to_carc(char *path, char *name_of_carc)
 {
+    // REINIT
+    size_list_len = 0;
+    files_start_size = 0;
+    id = 0xF000;
+    id_file = 0;
+    first_id_size = 0;
+    files_end_size = 0;
+    // END REINIT
+
     char last[255];
 
     split_strs(path, last);
     // printf("%s\n", path);
 
-    narc_dict sorted = sort_dir(last, path, 0); //"old_cape_wii_arc":"C:\\Users\\UserPC\\OneDrive\\Bureau\\GET DDATA\\Python attempt"
+    narc_dict sorted = sort_dir(last, path, 0);
 
     // printf("a\n");
-    index_file(sorted);
+    if (!index_file(sorted))
+        return 0;
     // printf("aa\n");
+
     unsigned int size = 0;
     FILE *file = fopen(name_of_carc, "wb"); //----
 
@@ -234,7 +284,8 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
     // printf("aa\n");
     unsigned int prec_size = 0;
     FILE *WritableIMG = fopen("blank.bin", "wb+");
-    load_all_files(sorted, path, &prec_size, WritableIMG); //"C:\\Users\\UserPC\\OneDrive\\Bureau\\GET DDATA\\Python attempt"
+    if (!load_all_files(sorted, path, &prec_size, WritableIMG))
+        return 0;
 
     size_list_len++;
     list_of_len = malloc(size_list_len * sizeof(int));
@@ -257,17 +308,23 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
     remove("blank.bin");
     remove("entries.bin");
     freeing_narcs(sorted);
-    free(first_id);
-    free(path);
-    free(files_end);
-    free(files_start);
+
+    if (first_id)
+        free(first_id);
+    if (files_end)
+        free(files_end);
+    if (files_start)
+        free(files_start);
+    if (list_of_len)
+        free(list_of_len);
+
     return 1;
 }
-int main(int a, char *argcv[])
+/* int main(int a, char *argcv[])
 {
     char *path = malloc(strlen(argcv[1]) + 1);
     strcpy(path, argcv[1]);
     if (convert_folders_to_carc(path, "b.narc"))
         return 1;
     return 0;
-}
+} */

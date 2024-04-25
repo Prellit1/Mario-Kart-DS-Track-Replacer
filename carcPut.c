@@ -129,11 +129,13 @@ void _readWrite(unsigned int cur, unsigned int offset, FILE *file)
 void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
 {
     int temp[2];
+
     int offset;
     offset = newSize - entry.size;
     /* printf("OFFSET/NWS/ENS : %d %d %d\n", offset, newSize, entry.size); */
     if (entry.id == 0xFF) // == fakeFat -> == arm9
     {
+
         unsigned int lengt = newSize;
 
         fseek(file, 0x2c, SEEK_SET);
@@ -152,22 +154,25 @@ void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
         //_readWrite(0x80, offset, file);
     }
     unsigned int fatAddr;
+
     fseek(file, 0x48, SEEK_SET);
     fread(&fatAddr, sizeof(int), 1, file);
+
     // va_list lengi;
     // va_start(lengi, file);
-    for (int i = 0; i < fatSize; i++)
+    for (int i = 0; i < fatSize / sizeof(*allTheFat); i++)
     {
         if (entry.addressStart < allTheFat[i].addressStart)
         {
             /* printf("Modif %x %x %x\n", allTheFat[i].addressStart, allTheFat[i].addressEnd, entry.addressStart); */
             fseek(file, fatAddr + (i * 8), SEEK_SET);
             // fprintf(file, "%04x%04x", (allTheFat[i].addressStart + course.size), (allTheFat[i].addressEnd + course.size));
-
+            // printf("CC %d\n", i);
             temp[0] = (allTheFat[i].addressStart + offset);
             temp[1] = (allTheFat[i].addressEnd + offset);
             fwrite(temp, 8, 1, file);
 
+            // printf("CC %d\n", i);
             /* printf("%x %x %d  \n", temp[0], temp[1], offset); */
         }
     }
@@ -180,6 +185,7 @@ void moveAddrRelatToStartAddr(ENTRY_FAT entry, unsigned int newSize, FILE *file)
 
         fwrite(&temp2, sizeof(int), 1, file);
     }
+
     /* end of : PROB USELESS BUT NOT GONNA TRY TOUCHING IT JUST IN CASE*/
 }
 
