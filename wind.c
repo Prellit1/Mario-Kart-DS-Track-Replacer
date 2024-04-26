@@ -224,10 +224,11 @@ int preCheck(int BX, int BY, int TX, int TY)
 //
 //
 //
-void dealString(char t[4][7])
+void dealString(char t[4][8])
 {
     for (int i = 0; i < 4; i++)
     {
+        // printf("%s\n", t[i]);
 
         if (t[i][0] == '\0')
         {
@@ -280,14 +281,22 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             if (isFold)
             {
                 isFold = 0;
-                remove(TEMP_NAME);
+                FILE *temp = fopen(TEMP_NAME, "r");
+                if (temp)
+                {
+                    fclose(temp);
+                    remove(TEMP_NAME);
+                }
             }
             else
             {
                 isFold = 1;
             }
-            fclose(CarcF);
-            SetWindowTextA(texTextC, "");
+            if (CarcF)
+            {
+                fclose(CarcF);
+                SetWindowTextA(texTextC, "");
+            }
             break;
         case MAP_PUSH:
             if (isLocal)
@@ -312,9 +321,11 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 
             GetWindowTextA(hTY, temp[3], 7);
 
-            dealString(temp);
             // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
+            dealString(temp);
+            printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             int temp2 = preCheck(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
+            printf("%d   %d   %d   %d\n", atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
 
             if (!MkdsF)
             {

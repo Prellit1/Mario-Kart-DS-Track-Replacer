@@ -324,8 +324,8 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
     remove("blank.bin");
     remove("entries.bin");
     freeing_narcs(sorted);
-    if (list_of_len)
-        free(list_of_len);
+    // if (list_of_len)
+    //   free(list_of_len);
 
     return 1;
 }

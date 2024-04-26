@@ -15,7 +15,7 @@
 #define TRACKSMUS 29
 #define CARC 1
 #define MKDS 0
-#define TEMP_NAME "C:\\Users\\UserPC\\OneDrive\\Bureau\\GET DDATA\\Track Replacer\\temporary.carc"
+#define TEMP_NAME "temporary.carc"
 // #define CBSING 0x10
 extern HWND hWnd;
 extern HWND hwndCBS, langCBS, musicCBS;

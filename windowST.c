@@ -334,7 +334,7 @@ int dialogForCarc(int CarcOrMkds)
 
                 return 1;
             }
-            MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
+
             return 0;
         }
     }
@@ -376,7 +376,7 @@ int dialogForCarc(int CarcOrMkds)
         }
         return 1;
     }
-    if (!CommDlgExtendedError())
+    if (CommDlgExtendedError())
     {
         MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
         return 0;
