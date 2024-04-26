@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     if (!(RegisterClassW(&wc)))
         return -1;
 
-    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.3", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
+    hWnd = CreateWindowW(L"windo", L"Track Replacer 1.0", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
 
     texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 27, hWnd, NULL, NULL, NULL);
     HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, MKDS_Y, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
@@ -323,9 +323,9 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 
             // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             dealString(temp);
-            printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
+            // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             int temp2 = preCheck(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
-            printf("%d   %d   %d   %d\n", atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
+            // printf("%d   %d   %d   %d\n", atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
 
             if (!MkdsF)
             {
