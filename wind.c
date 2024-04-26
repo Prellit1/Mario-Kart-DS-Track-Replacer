@@ -278,6 +278,11 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 
             break;
         case FOLD_BOX:
+            if (CarcF)
+            {
+                fclose(CarcF);
+                SetWindowTextA(texTextC, "");
+            }
             if (isFold)
             {
                 isFold = 0;
@@ -292,11 +297,7 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             {
                 isFold = 1;
             }
-            if (CarcF)
-            {
-                fclose(CarcF);
-                SetWindowTextA(texTextC, "");
-            }
+
             break;
         case MAP_PUSH:
             if (isLocal)
@@ -424,7 +425,8 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             }
             else if (ba != 2)
             {
-                SetWindowTextA(texTextC, openerC.lpstrFile);
+                if (!isFold)
+                    SetWindowTextA(texTextC, openerC.lpstrFile);
             }
             break;
 
@@ -560,7 +562,15 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
         if (MkdsF)
             fclose(MkdsF);
         if (CarcF)
+
             fclose(CarcF);
+
+        FILE *temp = fopen(TEMP_NAME, "r");
+        if (temp)
+        {
+            fclose(temp);
+            remove(TEMP_NAME);
+        }
         if (ncgr)
             fclose(ncgr);
         if (nclr)

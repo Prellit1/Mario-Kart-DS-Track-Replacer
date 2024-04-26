@@ -322,6 +322,7 @@ int dialogForCarc(int CarcOrMkds)
                 SHGetPathFromIDList(lpItem, szDir);
                 // free(lpItem);
                 opener->lpstrFile = szDir;
+                SetWindowTextA(texTextC, openerC.lpstrFile);
                 // MessageBoxA(hWnd, szDir, "a", MB_ICONINFORMATION);
 
                 if (folder_track_replacing(szDir))

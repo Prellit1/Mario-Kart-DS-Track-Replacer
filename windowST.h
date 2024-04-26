@@ -18,7 +18,7 @@
 #define TEMP_NAME "temporary.carc"
 // #define CBSING 0x10
 extern HWND hWnd;
-extern HWND hwndCBS, langCBS, musicCBS;
+extern HWND hwndCBS, langCBS, musicCBS, texTextC;
 extern OPENFILENAME openerM, openerC, openerNCLR, openerNCGR, openerNSCR;
 extern FILE *MkdsF, *CarcF, *ncgr, *nclr, *nscr;
 extern int isTex;
