@@ -1,5 +1,6 @@
 #include "windowST.h"
-
+#include "FOLD2NARC/carc.h"
+#include "putFile.h"
 OPENFILENAME openerM, openerC, openerNCLR, openerNCGR, openerNSCR;
 FILE *MkdsF, *CarcF, *ncgr, *nclr, *nscr;
 HWND hWnd;
@@ -156,6 +157,66 @@ unsigned char TrckId[TRACKS] = {
     MINISTAGE4,
 
 };
+int folder_track_replacing(char *folder)
+{
+
+    if (CarcF)
+        fclose(CarcF);
+    // printf("B\n");
+    if (!folder)
+        return -3;
+    int a = SendMessage(hwndCBS, CB_GETCURSEL, 0, 0);
+    // printf("B1\n");
+    if (a == 8)
+    {
+        int resp = MessageBox(hWnd, "Warning : If the carc that contains the model and the map data doesn't have a bridge object, the game will crash on this slot. Proceed ?", "Warning", MB_ICONWARNING | MB_YESNO);
+        if (resp == IDNO)
+            return 2;
+    }
+    // printf("B2\n");
+    if (!convert_folders_to_carc(folder, TEMP_NAME))
+        return -1;
+
+    FILE *compress = fopen(TEMP_NAME, "rb+");
+
+    unsigned int size = getFileLength(compress);
+
+    // printf("%d\n", size);
+
+    char *alloc = calloc(size, 1);
+    // printf("B3.5\n");
+
+    if (!alloc)
+    {
+        fclose(compress);
+
+        return -2;
+    }
+
+    fread(alloc, size, 1, compress);
+    // printf("B4\n");
+    fclose(compress);
+    compress = fopen(TEMP_NAME, "wb+");
+
+    unsigned int compSize;
+    alloc = COPIEDlz77compress(alloc, size, &compSize);
+    // printf("B5\n");
+
+    fseek(compress, 0, SEEK_SET);
+    fwrite(alloc, compSize, 1, compress);
+    fseek(compress, 0, SEEK_SET);
+    // printf("B6\n");
+
+    // putCarcInRom(compress, MkdsF, TrckId[a], isTex);
+
+    free(alloc);
+
+    fclose(compress);
+    CarcF = fopen(TEMP_NAME, "rb+");
+
+    // remove("temporary.carc");
+    return 0;
+}
 int trackReplacing()
 {
     if (CarcF && MkdsF)
@@ -174,7 +235,10 @@ int trackReplacing()
         // SetWindowTextA(texTextC, openerC.lpstrFile);
         // SetWindowTextA(texTextM, openerM.lpstrFile);
         //  fclose(MkdsF);
+
         fclose(CarcF);
+        if (isFold)
+            remove(TEMP_NAME);
         return 1;
     }
     return 0;
@@ -225,6 +289,7 @@ printf("%d,   %d,   %d\n", Ncgr.id, Nclr.id, Nscr.id); */
         fclose(ncgr);
         fclose(nclr);
         fclose(nscr);
+        freeFat();
         return 1;
     }
     return 0;
@@ -240,9 +305,41 @@ int dialogForCarc(int CarcOrMkds)
     else
     {
         opener = &openerC;
+        if (isFold)
+        {
+
+            char szDir[500];
+            BROWSEINFOA binfo = {0};
+            binfo.hwndOwner = hWnd;
+            binfo.pszDisplayName = szDir;
+            binfo.lpszTitle = "Please, select a folder";
+
+            LPITEMIDLIST lpItem = SHBrowseForFolderA(&binfo);
+
+            if (lpItem != NULL)
+            {
+
+                SHGetPathFromIDList(lpItem, szDir);
+                // free(lpItem);
+                opener->lpstrFile = szDir;
+                // MessageBoxA(hWnd, szDir, "a", MB_ICONINFORMATION);
+
+                if (folder_track_replacing(szDir))
+                {
+
+                    MessageBox(hWnd, "Error related to bad code and memory allocation.\n Heh thats what i get for being bad lmao, atleast i catch mem alloc issue and dont make the shit crash.", "Error importing the Carc", MB_ICONERROR);
+
+                    return 0;
+                }
+
+                return 1;
+            }
+
+            return 0;
+        }
     }
 
-    TCHAR szFile[360] = {0};
+    TCHAR szFile[500] = {0};
 
     ZeroMemory(opener, sizeof(*opener));
     opener->lStructSize = sizeof(*opener);
@@ -279,8 +376,12 @@ int dialogForCarc(int CarcOrMkds)
         }
         return 1;
     }
-    if (!CommDlgExtendedError())
-        return 2;
+    if (CommDlgExtendedError())
+    {
+        MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
+        return 0;
+    }
+
     return 0;
 }
 
@@ -358,17 +459,27 @@ int dialogForNC(int NC)
 
 void decompArm9ToRom(FILE *Mkds, HWND Hwnd)
 {
+    // printf("aa\n");
+
     getFat(MkdsF);
     int addr = getArm9Addr(Mkds);
     int size = getArm9Size(Mkds);
     NFooter NF = getArm9Footer(Mkds);
     char *arm9 = getArm9InAlloc(Mkds);
+
+    // printf("aa\n");
     char *decompArm9 = COPIED_Decompress(arm9, NF.OffsetToArm9Addr, size);
+    // printf("aa\n");
+
     ENTRY_FAT fakeFat;
     fakeFat.addressStart = addr;
     fakeFat.size = size;
     fakeFat.id = 0xff;
     putDataInRom(leng, decompArm9, Mkds, fakeFat);
+    // printf("aa\n");
+
+    freeFat();
+    // printf("aa\n");
     free(arm9);
 }
 int checkDecomp(FILE *Mkds)

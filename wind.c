@@ -7,6 +7,7 @@
 
 HWND texText, texTextM, texTextC, texTextN, texTextN2, texTextN3, mapText, hBX, hBY, hTX, hTY, hName, bank;
 char isLocal;
+int isFold;
 #define CARC_IMPORT 0x2
 #define MKDS_IMPORT 0x4
 #define NCGR 0x40
@@ -20,16 +21,17 @@ char isLocal;
 #define NC_REP 0x100
 #define RENAME 0x800
 #define MUS_REP 0x1000
+#define FOLD_BOX 0x2000
 
 #define OFFSET 100 // Kinda hacky or smth but hey it modifies faster the x pos of the map stufff
 // FUCK IT WE BALL
-#define CARC_Y 215
+#define CARC_Y 245
 #define BASE_X 30
-#define NC_Y 335
+#define NC_Y 365
 #define TXT_YOFFS 6
 #define TRACKNNAME_Y 80
 #define MKDS_Y 20
-#define MAP_Y 520
+#define MAP_Y 550
 
 LRESULT CALLBACK WindProce(HWND, UINT, WPARAM, LPARAM);
 BOOL EnforceSignedIntegerEdit(HWND);
@@ -50,12 +52,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     if (!(RegisterClassW(&wc)))
         return -1;
 
-    hWnd = CreateWindowW(L"windo", L"Track Replacer 0.1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
+    hWnd = CreateWindowW(L"windo", L"Track Replacer 1.0", WS_OVERLAPPEDWINDOW | WS_VISIBLE, BASE_X + 50, 100, 1000, 700, NULL, NULL, NULL, NULL);
 
     texTextM = CreateWindowW(L"STATIC", L"MKDS", WS_VISIBLE | WS_CHILD, BASE_X + 125, MKDS_Y + TXT_YOFFS, 1200, 27, hWnd, NULL, NULL, NULL);
     HWND hwndButtonMkds = CreateWindowW(L"BUTTON", L"Import MKDS", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, MKDS_Y, 100, 30, hWnd, (HMENU)MKDS_IMPORT, NULL, NULL);
 
     HWND hwndButtonTex = CreateWindowW(L"BUTTON", L"Is Tex Carc ? :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, BASE_X, CARC_Y - 30, 120, 30, hWnd, (HMENU)TEX_BOX, NULL, NULL);
+    HWND hwndButtonFOLD = CreateWindowW(L"BUTTON", L"Folder import :", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_CHECKBOX, BASE_X, CARC_Y - 60, 150, 30, hWnd, (HMENU)FOLD_BOX, NULL, NULL);
     texText = CreateWindowW(L"STATIC", L"Not Tex Carc", WS_VISIBLE | WS_CHILD, BASE_X + 125, CARC_Y - 30 + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
     texTextC = CreateWindowW(L"STATIC", L"CARC", WS_VISIBLE | WS_CHILD, BASE_X + 125, CARC_Y + TXT_YOFFS, 1200, 30, hWnd, NULL, NULL, NULL);
     HWND hwndButtonCarc = CreateWindowW(L"BUTTON", L"Import Carc", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_TEXT, BASE_X, CARC_Y, 100, 30, hWnd, (HMENU)CARC_IMPORT, NULL, NULL);
@@ -221,10 +224,11 @@ int preCheck(int BX, int BY, int TX, int TY)
 //
 //
 //
-void dealString(char t[4][7])
+void dealString(char t[4][8])
 {
     for (int i = 0; i < 4; i++)
     {
+        // printf("%s\n", t[i]);
 
         if (t[i][0] == '\0')
         {
@@ -273,6 +277,27 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             }
 
             break;
+        case FOLD_BOX:
+            if (isFold)
+            {
+                isFold = 0;
+                FILE *temp = fopen(TEMP_NAME, "r");
+                if (temp)
+                {
+                    fclose(temp);
+                    remove(TEMP_NAME);
+                }
+            }
+            else
+            {
+                isFold = 1;
+            }
+            if (CarcF)
+            {
+                fclose(CarcF);
+                SetWindowTextA(texTextC, "");
+            }
+            break;
         case MAP_PUSH:
             if (isLocal)
             {
@@ -296,9 +321,11 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 
             GetWindowTextA(hTY, temp[3], 7);
 
+            // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             dealString(temp);
             // printf("%s\n%s\n%s\n%s\n", temp[0], temp[1], temp[2], temp[3]);
             int temp2 = preCheck(atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
+            // printf("%d   %d   %d   %d\n", atoi(temp[0]), atoi(temp[1]), atoi(temp[2]), atoi(temp[3]));
 
             if (!MkdsF)
             {
@@ -370,7 +397,7 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             {
 
                 openerM.lpstrFile = "";
-                MessageBox(hWnd, "Error importing the MKDS Rom. Please retry", "Error importing the MKDS Rom", MB_ICONERROR);
+                // MessageBox(hWnd, "Error importing the MKDS Rom. Please retry", "Error importing the MKDS Rom", MB_ICONERROR);
             }
             else if (ba != 2)
             {
@@ -393,7 +420,7 @@ LRESULT CALLBACK WindProce(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
             if (!ba)
             {
                 openerM.lpstrFile = "";
-                MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
+                // MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
             }
             else if (ba != 2)
             {

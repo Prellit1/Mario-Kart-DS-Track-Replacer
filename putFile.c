@@ -49,6 +49,7 @@ void putCarcInRom(FILE *Carc, FILE *Mkds, int Id, char isTex)
 
     /* free(pCarc);
     free(restOfMKDS); */
+    freeFat();
 }
 void putFileInRom(FILE *File, FILE *Mkds, ENTRY_FAT entry)
 {
@@ -60,35 +61,44 @@ void putFileInRom(FILE *File, FILE *Mkds, ENTRY_FAT entry)
 
 void putDataInRom(unsigned int dataSize, void *pData, FILE *Mkds, ENTRY_FAT entry)
 {
+    // printf("ba\n");
     unsigned int sizeReplData = entry.size;
     // sizeReplData = 0;
 
     void *restOfMKDS = getRestOfFileWithOffsetAlsoSetCursorToAddrOfReplacedData(Mkds, entry.addressStart, sizeReplData);
-
+    // printf("ba\n");
     int sizeOfRestMKDS = _getRelativeFileLength(Mkds, ftell(Mkds)) - sizeReplData;
+    // printf("ba\n");
 
     fwrite(pData, dataSize, 1, Mkds);
-
+    // printf("ba\n");
     fwrite(restOfMKDS, sizeOfRestMKDS, 1, Mkds);
-
+    // printf("bB\n");
     moveAddrRelatToStartAddr(entry, dataSize, Mkds);
-
+    // printf("ba\n");
     _fileSizeChange(Mkds, dataSize - sizeReplData);
-
+    // printf("ba\n");
     fseek(Mkds, 0, SEEK_SET);
-
+    // printf("bB\n");
     char *Header = (char *)malloc(0x15E);
     fread(Header, 0x15E, 1, Mkds);
+    // printf("ba\n");
 
     // COPIED
     unsigned short CRC = _COPIEDGetCRC16((unsigned char *)Header, 0x15E);
+    // printf("ba\n");
     free(Header);
+    // printf("Fa\n");
     //-
 
     fseek(Mkds, 0x15E, SEEK_SET);
+    // printf("Fa\n");
     fwrite(&CRC, 2, 1, Mkds);
+    // printf("Fa\n");
     free(pData);
+    // printf("Fa\n");
     free(restOfMKDS);
+    // printf("Fa\n");
 }
 
 void _fileSizeChange(FILE *Mkds, unsigned int sizeAdded)

@@ -227,11 +227,11 @@ unsigned int lenMSG(unsigned int TrackNum, unsigned int *array)
 {
     return (array[TrackNum + STARTTRACKMSG + 1] - array[TrackNum + STARTTRACKMSG]);
 }
-char *charToCompatChar(char *input, char *buffer, unsigned int *size, unsigned int bmgSize, unsigned int *array, unsigned int trackID)
+/* char * */ void charToCompatChar(char *input, char *buffer, unsigned int *size, unsigned int bmgSize, unsigned int *array, unsigned int trackID)
 {
     int temp = ((*size + 1) * 2) - lenMSG(trackID, array); //
-    if ((temp + bmgSize) % 4)                              // So hacky but i think itll fix the placeholder issue
-        *size = *size + 1;                                 //
+    if (temp % 4)                                          // So hacky but i think itll fix the placeholder issue
+        *size = *size + (int)abs((temp % 4) / 2);          // and vanillas one maybe ?
 
     for (unsigned int i = 0; i <= *size; i++) // i think the windows function doesnt take the \0 into account so im gonna forcefully add it
     {
@@ -239,7 +239,7 @@ char *charToCompatChar(char *input, char *buffer, unsigned int *size, unsigned i
         buffer[i * 2 + 1] = '\0';
     }
     *size = (*size + 1) * 2;
-    return buffer;
+    // return buffer;
 }
 ADDRFAT getCFatAddresses(char *decompCarc)
 {
@@ -362,13 +362,13 @@ char *putBMGinDecompCarc(char *DecompC, char *bmg, int deltaS, ENTRY bmgAddr, in
 /// ///  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   THOSE FUNCTIONS ARE SHITTILY WRITTEN
 char *replaceATrackName(unsigned int TrackNum, char *DecompedCarc, char *newName, unsigned int charSize, unsigned int *uncompSize)
 {
-    char *officialBuffer = malloc(512);
+    char officialBuffer[512] /*  = malloc(512) */;
 
     char *bmg = getBMGFile(DecompedCarc, getBmgAddr(DecompedCarc));
     unsigned int bmgSize = getSize(getBmgAddr(DecompedCarc));
     unsigned int *array = getAllMSGOffsets(bmg);
 
-    officialBuffer = charToCompatChar(newName, officialBuffer, &charSize, bmgSize, array, TrackNum);
+    /* officialBuffer =  */ charToCompatChar(newName, officialBuffer, &charSize, bmgSize, array, TrackNum);
     unsigned int newSize = charSize;
 
     int deltaS;
@@ -378,7 +378,7 @@ char *replaceATrackName(unsigned int TrackNum, char *DecompedCarc, char *newName
 
     free(bmg);
     free(array);
-    free(officialBuffer);
+    // free(officialBuffer);
     return DecompedCarc;
 }
 
@@ -408,6 +408,7 @@ void MKDSReplTrack(FILE *mkds, int curs, int TrackID, unsigned int charLength, c
     // free(res);
 
     free(buf);
+    freeFat();
 }
 
 /* int main()
