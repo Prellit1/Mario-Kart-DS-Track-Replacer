@@ -1,16 +1,20 @@
 #include "carc.h"
 #include <windows.h>
+
 short id = 0xF000;
 
 short id_file = 0;
 
-int *first_id = NULL;
+// int *first_id = NULL;
+int first_id[Reasonable_max_len];
 int first_id_size = 0;
 
-int *files_end = NULL;
+// int *files_end = NULL;
+int files_end[Reasonable_max_len];
 int files_end_size = 0;
 
-int *files_start = NULL;
+// int *files_start = NULL;
+int files_start[Reasonable_max_len];
 int files_start_size = 0;
 
 narc_dict init_narcdict()
@@ -88,8 +92,8 @@ narc_dict sort_dir(char *dir, char *path, int parent_id)
 int index_file(narc_dict sorted)
 {
     first_id_size++;
-    first_id = first_id ? realloc(first_id, first_id_size * sizeof(int)) : malloc(first_id_size * sizeof(int));
-    if (!first_id)
+    // first_id = first_id ? realloc(first_id, first_id_size * sizeof(int)) : malloc(first_id_size * sizeof(int));
+    if (/* !first_id */ first_id_size > Reasonable_max_len)
         return 0;
     first_id[first_id_size - 1] = id_file;
 
@@ -126,7 +130,10 @@ int load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, F
     char *tmpSTR = malloc(3 + strlen(base_path) + strlen(sorted.name));
 
     if (!tmpSTR)
+    {
+        printf("%d   %d 2\n", GetLastError(), 3 + strlen(base_path) + strlen(sorted.name));
         return 0;
+    }
 
     strcpy(tmpSTR, base_path);
     strcat(tmpSTR, "\\");
@@ -139,6 +146,7 @@ int load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, F
 
         if (!tmpSTR2)
         {
+            printf("%d    %d\n", GetLastError(), 3 + strlen(tmpSTR) + strlen(sorted.files[fileID]));
             free(tmpSTR);
             return 0;
         }
@@ -159,32 +167,40 @@ int load_all_files(narc_dict sorted, char *base_path, unsigned int *prec_size, F
         size += alloc;
 
         files_end_size++;
-        files_end = !files_end ? malloc(files_end_size * sizeof(int) + 1) : realloc(files_end, files_end_size * sizeof(int) + 1);
-        if (!files_end)
+        // iles_end = !files_end ? malloc(files_end_size * sizeof(int) + 1) : realloc(files_end, files_end_size * sizeof(int) + 1);
+        /* if (!files_end)
         {
+            printf("%d    %d nd\n", GetLastError(), files_end_size * sizeof(int) + 1);
             free(tmpSTR);
             free(tmpSTR2);
             return 0;
-        }
+        } */
+
+        if (files_end_size > Reasonable_max_len)
+            return 0;
         files_end[files_end_size - 1] = size;
         // printf("a\n");
 
         size += alloc % 4;
 
         files_start_size++;
-        files_start = realloc(files_start, files_start_size * sizeof(int) + 1);
+        /* files_start = realloc(files_start, files_start_size * sizeof(int) + 1);
         if (!files_start)
         {
+            printf("%d    %d st\n", GetLastError(), files_start_size * sizeof(int) + 1);
             free(tmpSTR);
             free(tmpSTR2);
             return 0;
-        }
+        } */
+        if (files_start_size > Reasonable_max_len)
+            return 0;
         files_start[files_start_size - 1] = size;
         // printf("a\n");
 
         char *fileAlloc = malloc(alloc);
         if (!fileAlloc)
         {
+            printf("%d         %d al\n", GetLastError(), alloc);
             free(tmpSTR);
             free(tmpSTR2);
             return 0;
@@ -277,7 +293,7 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
     // printf("a\n");
 
     files_start_size++;
-    files_start = malloc(files_start_size * sizeof(int) + 1);
+    // files_start = malloc(files_start_size * sizeof(int) + 1);
     files_start[files_start_size - 1] = 0;
     // char *FILES = malloc(0);
 
@@ -288,7 +304,7 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
         return 0;
 
     size_list_len++;
-    list_of_len = malloc(size_list_len * sizeof(int));
+    // list_of_len = malloc(size_list_len * sizeof(int));
     list_of_len[size_list_len - 1] = 0;
 
     // printf("a\n");
@@ -308,13 +324,6 @@ int convert_folders_to_carc(char *path, char *name_of_carc)
     remove("blank.bin");
     remove("entries.bin");
     freeing_narcs(sorted);
-
-    if (first_id)
-        free(first_id);
-    if (files_end)
-        free(files_end);
-    if (files_start)
-        free(files_start);
     if (list_of_len)
         free(list_of_len);
 

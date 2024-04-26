@@ -1,6 +1,6 @@
 #include "carc.h"
 
-unsigned int *list_of_len;
+unsigned int list_of_len[Reasonable_max_len];
 int size_list_len = 0;
 
 int write_fnt(narc_dict sorted, FILE *f, FILE *Write)
@@ -90,7 +90,9 @@ void make_subtable_string(narc_dict sorted, FILE *sub_str, int *size)
     fwrite("\0", 1, 1, sub_str);
 
     size_list_len++;
-    list_of_len = realloc(list_of_len, size_list_len * sizeof(int));
+    // list_of_len = realloc(list_of_len, size_list_len * sizeof(int));
+    if (size_list_len > Reasonable_max_len)
+        return;
     list_of_len[size_list_len - 1] = ftell(sub_str);
     // tmp + list_of_len[size_list_len - 2];
     // printf("a");

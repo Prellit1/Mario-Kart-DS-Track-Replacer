@@ -320,12 +320,15 @@ int dialogForCarc(int CarcOrMkds)
             {
 
                 SHGetPathFromIDList(lpItem, szDir);
+                // free(lpItem);
                 opener->lpstrFile = szDir;
                 // MessageBoxA(hWnd, szDir, "a", MB_ICONINFORMATION);
 
                 if (folder_track_replacing(szDir))
                 {
+
                     MessageBox(hWnd, "Error related to bad code and memory allocation.\n Heh thats what i get for being bad lmao, atleast i catch mem alloc issue and dont make the shit crash.", "Error importing the Carc", MB_ICONERROR);
+
                     return 0;
                 }
 
@@ -378,7 +381,7 @@ int dialogForCarc(int CarcOrMkds)
         MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
         return 0;
     }
-    MessageBox(hWnd, "Error importing the Carc. Please retry", "Error importing the Carc", MB_ICONERROR);
+
     return 0;
 }
 
